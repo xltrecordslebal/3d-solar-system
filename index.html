@@ -1,14 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>3D Solar System</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Solar System (No Texture)</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; }
+  </style>
 </head>
 <body>
-  <div id="container"></div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r148/three.min.js"></script>
-  <script src="main.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.min.js"></script>
+  <script>
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // Lighting
+    const light = new THREE.PointLight(0xffffff, 2);
+    light.position.set(0, 0, 0);
+    scene.add(light);
+
+    // Sun
+    const sunGeometry = new THREE.SphereGeometry(2, 32, 32);
+    const sunMaterial = new THREE.MeshStandardMaterial({ color: 0xffff00 });
+    const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+    scene.add(sun);
+
+    // Planet data (with colors)
+    const planetsData = [
+      { name: "Mercury", size: 0.4, distance: 5, speed: 0.02, color: 0xaaaaaa },
+      { name: "Venus", size: 0.9, distance: 8, speed: 0.015, color: 0xffcc66 },
+      { name: "Earth", size: 1, distance: 11, speed: 0.01, color: 0x3399ff },
+      { name: "Mars", size: 0.5, distance: 14, speed: 0.008, color: 0xff5533 }
+    ];
+
+    const planets = [];
+
+    planetsData.forEach(data => {
+      const geometry = new THREE.SphereGeometry(data.size, 32, 32);
+      const material = new THREE.MeshStandardMaterial({ color: data.color });
+      const mesh = new THREE.Mesh(geometry, material);
+      scene.add(mesh);
+      planets.push({ mesh, ...data, angle: 0 });
+    });
+
+    camera.position.z = 30;
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      sun.rotation.y += 0.002;
+
+      planets.forEach(p => {
+        p.angle += p.speed;
+        p.mesh.position.x = Math.cos(p.angle) * p.distance;
+        p.mesh.position.z = Math.sin(p.angle) * p.distance;
+        p.mesh.rotation.y += 0.01;
+      });
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    // Resize support
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
 </body>
 </html>
